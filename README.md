@@ -1,10 +1,8 @@
-# SUI goFundMe
+#SUI goFundMe Dapp
 
-My first dapp on sui
+This Dapp enables users to create crowdfunding campaigns where other users can donate their SUI tokens. Key features include:
 
-
-I created a gofundme Dapp on SUI, that allows users to be able to create crowdfunding campaigns to which other users can donate their sui tokens. 
-
-Each campaign is set with a target and after the target is reached no donations are allowed, and each user that donates to a campaign is given a receipt nft to show that the user donated to that campaign.
-
-Only the creator of fund campaign is allowed to withdraw the donations once the target is reached.
+  - **Campaign Management**: Users can create campaigns with specified funding targets.
+  - **Donation Handling**: Donors can contribute to campaigns until the target is reached.
+  - **Receipt NFTs**: Donors receive a unique NFT as a receipt for their contributions.
+  - **Secure Withdrawals**: Only the campaign creator can withdraw funds upon reaching the target.
