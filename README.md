@@ -1,4 +1,4 @@
-#SUI goFundMe Dapp
+# SUI goFundMe Dapp
 
 This Dapp enables users to create crowdfunding campaigns where other users can donate their SUI tokens. Key features include:
 
