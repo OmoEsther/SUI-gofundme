@@ -46,6 +46,7 @@ module goFundMe::fund_contract {
     }
 
     // init function ran as fund contract is published
+    // Initialize the fund contract
     fun init(ctx: &mut TxContext) {
         // create empty map
         let funds_map = vec_map::empty<u32, ID>();
@@ -64,6 +65,7 @@ module goFundMe::fund_contract {
     }
 
     // The create_fund function
+    // Create a new crowdfunding campaign
     public entry fun create_fund(fundContract: &mut FundContract, target: u64, ctx: &mut TxContext){
         // get txn sender 
         let sender = tx_context::sender(ctx);
@@ -125,6 +127,7 @@ module goFundMe::fund_contract {
     }
 
     // The donate function
+    // Donate to a crowdfunding campaign
     public entry fun donate(fund: &mut Fund, amount: Coin<SUI>, ctx: &mut TxContext) {  
         // check that funding target has not been reached
         assert!(!fund.target_reached, ETargetReached);
@@ -158,6 +161,7 @@ module goFundMe::fund_contract {
     }
 
     // withdraw funds from the fund contract, requiring a FundOwner that matches the fund id
+    // Withdraw funds from the campaign
     public entry fun withdraw_funds(owner: &FundOwner, fund: &mut Fund, ctx: &mut TxContext) {
         assert!(&owner.fund_id == object::uid_as_inner(&fund.id), ENotFundOwner);
 
