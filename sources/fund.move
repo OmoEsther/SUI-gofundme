@@ -109,4 +109,169 @@ module goFundMe::fund_contract {
     public fun getFundsRaised(self: &Fund): u64 {
         balance::value(&self.raised)
     }
+
+    // === Tests ===
+    #[test_only] use sui::test_scenario as ts;
+    #[test_only] const OWNER: address = @0xAD;
+    #[test_only] const ALICE: address = @0xA;
+    #[test_only] const BOB: address = @0xB;
+
+    // === Test the create 
+    #[test]
+    fun test_gofundme(){
+        let ts = ts::begin(@0x0);
+
+        // FundOwner creates a fund me campaign
+        {
+            ts::next_tx(&mut ts, OWNER);
+            let target: u64 = 50; // 50 sui tokens
+            // create owner cap for fund
+            let fundOwnerCap = createFund(target, ts::ctx(&mut ts));
+            // transfer cap to owner
+            transfer::public_transfer(fundOwnerCap, OWNER);
+        };
+
+        // Alice donates 25 sui tokens to the campaign
+
+        {
+            ts::next_tx(&mut ts, ALICE);
+            let fund = ts::take_shared(&ts);
+            let coin = coin::mint_for_testing<SUI>(25, ts::ctx(&mut ts));
+            let receipt = donate(&mut fund, coin, ts::ctx(&mut ts));
+
+            // transfer receipt to alice
+            transfer::public_transfer(receipt, ALICE);
+
+            assert!(getFundsRaised(&fund) == 25, 0);
+
+            ts::return_shared(fund);
+        };
+
+        // Bob donates 35 sui tokens to the campaign
+        {
+            ts::next_tx(&mut ts, BOB);
+            let fund = ts::take_shared(&ts);
+            let coin = coin::mint_for_testing<SUI>(35, ts::ctx(&mut ts));
+            let receipt = donate(&mut fund, coin, ts::ctx(&mut ts));
+
+            // transfer receipt to alice
+            transfer::public_transfer(receipt, BOB);
+
+            assert!(getFundsRaised(&fund) == 60, 0);
+
+            ts::return_shared(fund);
+        };
+
+         // Owner withdraws the fund        
+         {
+            ts::next_tx(&mut ts, OWNER);
+            let ownerCap: FundOwner = ts::take_from_sender(&ts);
+            let fund: Fund = ts::take_shared(&ts);
+            
+            let coin = withdrawFunds(&ownerCap, &mut fund, ts::ctx(&mut ts));
+            
+            transfer::public_transfer(coin, OWNER);
+
+            ts::return_shared(fund);
+            ts::return_to_sender(&ts, ownerCap);
+        };
+
+        ts::end(ts);
+    }
+
+    #[test]
+    #[expected_failure]
+    fun test_owner_should_not_be_able_to_withdraw_if_target_not_reached(){
+        let ts = ts::begin(@0x0);
+
+        // FundOwner creates a fund me campaign
+        {
+            ts::next_tx(&mut ts, OWNER);
+            let target: u64 = 50; // 50 sui tokens
+            // create owner cap for fund
+            let fundOwnerCap = createFund(target, ts::ctx(&mut ts));
+            // transfer cap to owner
+            transfer::public_transfer(fundOwnerCap, OWNER);
+        };
+
+        // Alice donates 25 sui tokens to the campaign
+
+        {
+            ts::next_tx(&mut ts, ALICE);
+            let fund = ts::take_shared(&ts);
+            let coin = coin::mint_for_testing<SUI>(25, ts::ctx(&mut ts));
+            let receipt = donate(&mut fund, coin, ts::ctx(&mut ts));
+
+            // transfer receipt to alice
+            transfer::public_transfer(receipt, ALICE);
+
+            assert!(getFundsRaised(&fund) == 25, 0);
+
+            ts::return_shared(fund);
+        };
+
+         // Owner withdraws the fund        
+         {
+            ts::next_tx(&mut ts, OWNER);
+            let ownerCap: FundOwner = ts::take_from_sender(&ts);
+            let fund: Fund = ts::take_shared(&ts);
+            
+            let coin = withdrawFunds(&ownerCap, &mut fund, ts::ctx(&mut ts));
+            
+            transfer::public_transfer(coin, OWNER);
+
+            ts::return_shared(fund);
+            ts::return_to_sender(&ts, ownerCap);
+        };
+
+        ts::end(ts);
+    }
+
+    #[test]
+    #[expected_failure]
+    fun test_user_cannot_deposit_after_target_reached(){
+        let ts = ts::begin(@0x0);
+
+        // FundOwner creates a fund me campaign
+        {
+            ts::next_tx(&mut ts, OWNER);
+            let target: u64 = 50; // 50 sui tokens
+            // create owner cap for fund
+            let fundOwnerCap = createFund(target, ts::ctx(&mut ts));
+            // transfer cap to owner
+            transfer::public_transfer(fundOwnerCap, OWNER);
+        };
+
+        // Alice donates 50 sui tokens to the campaign
+        {
+            ts::next_tx(&mut ts, ALICE);
+            let fund = ts::take_shared(&ts);
+            let coin = coin::mint_for_testing<SUI>(50, ts::ctx(&mut ts));
+            let receipt = donate(&mut fund, coin, ts::ctx(&mut ts));
+
+            // transfer receipt to alice
+            transfer::public_transfer(receipt, ALICE);
+
+            assert!(getFundsRaised(&fund) == 50, 0);
+
+            ts::return_shared(fund);
+        };
+
+        // Bob donates 35 sui tokens to the campaign
+        {
+            ts::next_tx(&mut ts, BOB);
+            let fund = ts::take_shared(&ts);
+            let coin = coin::mint_for_testing<SUI>(35, ts::ctx(&mut ts));
+            let receipt = donate(&mut fund, coin, ts::ctx(&mut ts));
+
+            // transfer receipt to alice
+            transfer::public_transfer(receipt, BOB);
+
+            assert!(getFundsRaised(&fund) == 85, 0);
+
+            ts::return_shared(fund);
+        };
+
+        ts::end(ts);
+    }
 }
